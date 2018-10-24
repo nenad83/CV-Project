@@ -1,7 +1,7 @@
 var users = require("../models/users");
 var bcrypt = require("bcryptjs");
 var validator = require("fastest-validator");
-var v = new validator();
+ 
 
 var getAllUsers = (req, res)=> {
 	users.getAllUsers((err, data)=> {
@@ -36,44 +36,34 @@ var createUser = (req, res) => {
     //             && req.body.email != undefined && req.body.email != "" 
     //             // && req.body.email != userData.email
     //             && req.body.password != undefined && req.body.password != "";
-
-
     var schema = {
-        firstName: {type: 'string', empty: false},
-        lastName: {type: 'string', empty: false},
-        email: {type: 'email', empty: false},
-        password: {type: 'string', min: 3, max: 16, empty: false}
-    }   
+    	firstName: {type: "string", empty: false},
+    	lastName: {type: "string", empty: false},
+    	email: {type: "email", empty: false},
+    	password: {type: "string", min: 8, max: 16, empty: false}
+    }
 
     let v = new validator();
-    var valid = v.validate(req.body, schema);   
+    var valid = v.validate(req.body, schema)
 
     if(valid === true) {
-        users.getUserByEmail(req.body.email, (err, data) => {
-            if (err) {
-                return res.send(err);
-            } else {
-                if (data == null) {
-                    bcrypt.hash(req.body.password, 10, (err, hash) => {
-                        var userData = req.body;
-                        userData.password = hash;
-                        userData.role = 'user';
-                        users.createUser(userData, (err) => {
-                            if(err) {
-                                res.send(err);
-                            } else {
-                                res.status(201).send("OK");
-                            }
-                        });
-                    });
+        bcrypt.hash(req.body.password, 10, (err, hash) => {
+            var userData = req.body;
+            userData.password = hash;
+            userData.role = 'user';
+            users.createUser(userData, (err) => {
+                if(err) {
+                    res.send(err);
                 } else {
-                    res.status(400).send("User exists");
+                    res.status(201).send("OK");
+              
                 }
-            }
-        })
+            });
+        });
     } else {
         res.status(400).send(valid);
     }
+    // }
 }
 
 var deleteUser = (req, res) => {
